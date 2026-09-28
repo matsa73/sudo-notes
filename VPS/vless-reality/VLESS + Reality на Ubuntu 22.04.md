@@ -1,0 +1,159 @@
+# VLESS + Reality
+
+## Шаг 1: Настройка VPS
+
+1. Подключение к VPS-серверу через терминал по ssh [[Подключение к VPS по SSH-ключу]]
+2. Обновление системы:
+
+    ```bash
+    sudo apt update && sudo apt upgrade -y
+    ```
+
+3. Установка необходимых утилит (`curl` может быть уже установлен)
+
+    ```bash
+    apt install -y curl socat
+    ```
+
+4. Установка Xray-core:
+
+    Установка выполняется официальным скриптом, который сам подтянет все зависимости и создаст systemd-сервис:
+
+    ```bash
+    # Скачиваем и запускаем установочный скрипт
+    wget https://github.com/XTLS/Xray-install/raw/main/install-release.sh
+    sudo bash install-release.sh
+
+    # Удаляем скрипт после установки
+    rm ~/install-release.sh
+    ```
+
+    После завершения установки Xray будет доступен как системная служба, а его конфигурационный файл будет находиться по пути `/usr/local/etc/xray/config.json`
+
+## Шаг 2: Генерация необходимых ключей и идентификаторов
+
+1. Генерация UUID (идентификатора пользователя):
+
+    ```bash
+    xray uuid
+    # Пример вывода: 12345678-1234-1234-1234-1234567890ab
+    ```
+
+2. Генерация пары ключей X25519 для Reality:
+
+    ```bash
+    xray x25519
+    # Пример вывода:
+    # Private key: sK9VV_qkrI5Aex7YCsFt9lgddBVK9DIUyzN9R9PYIF9
+    # Public key: C2jbG73fEkDX190hplzPkDmUZ0vJYowxzZoLu-ylgD9
+    ```
+
+3. Генерация Short ID:
+
+    ```bash
+    openssl rand -hex 8
+    # Пример вывода: 1a2b3c4d5e6f7a8b
+    ```
+
+    `shortId` — это короткий идентификатор (до 16 hex-символов), который клиент передаёт серверу внутри TLS ClientHello вместе с публичным ключом. Он нужен для двух целей:
+    - Разделение доступа между несколькими клиентами на одном сервере.
+    - Защита от активного зондирования: если запрос приходит без правильного shortId, сервер ведёт себя как обычный сайт (перенаправляет на target), а не как прокси.
+
+    Для каждого клиента (телефон, компьютер, планшет) можно сгенерировать свой `shortId`:
+
+## Шаг 3: Настройка конфигурационного файла Xray
+
+Теперь откройте конфигурационный файл для редактирования с помощью текстового редактора nano:
+
+```bash
+nano /usr/local/etc/xray/config.json
+```
+
+Полностью удалите содержимое файла и вставьте следующий шаблон. Вам нужно будет заменить три значения на те, что вы сгенерировали на предыдущем шаге:
+
+```json
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "ВАШ_UUID_ИЗ_ШАГА_2",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "www.microsoft.com:443",
+          "xver": 0,
+          "serverNames": [
+            "www.microsoft.com"
+          ],
+          "privateKey": "ВАШ_PRIVATE_KEY_ИЗ_ШАГА_2",
+          "shortIds": [
+            "ВАШ_SHORT_ID_ИЗ_ШАГА_2"
+          ]
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "direct"
+    }
+  ]
+}
+```
+
+Разбор параметров:
+
+1. `id`: Вставьте сюда сгенерированный UUID;
+2. `privateKey`: Вставьте сюда приватный ключ (Private key);
+3. `shortIds`: Вставьте сюда сгенерированный Short ID;
+4. `dest` и `serverNames"`: Это адрес сайта-«донора», чей сертификат будет использоваться для маскировки.
+
+## Шаг 4: Проверка и запуск Xray
+
+Перед запуском службы критически важно проверить конфигурацию на синтаксические ошибки.
+
+1. Проверка конфигурации:
+
+    ```bash
+    xray run -test -c /usr/local/etc/xray/config.json
+    ```
+
+    Если команда выполнится без ошибок, вы увидите сообщение `Configuration OK`. Если есть ошибки, они будут указаны с номером строки, что облегчит их поиск.
+
+2. Запуск и включение автозагрузки:
+
+    ```bash
+    systemctl daemon-reload
+    systemctl enable xray
+    systemctl restart xray
+    ```
+
+3. Проверка статуса:
+
+    ```bash
+    systemctl status xray
+    ```
+
+    Убедитесь, что служба находится в состоянии active (running).
