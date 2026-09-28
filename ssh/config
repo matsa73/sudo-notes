@@ -1,0 +1,7 @@
+Host my_server 
+    HostName server_ip
+    User user
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
