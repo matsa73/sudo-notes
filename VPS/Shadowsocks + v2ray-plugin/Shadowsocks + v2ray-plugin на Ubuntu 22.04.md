@@ -1,5 +1,7 @@
 # Shadowsocks + v2ray-plugin
 
+Установка и настройка осуществляются на ОС Ubuntu 22.04
+
 ## Настройка VPS
 
 1. Подключение к VPS-серверу через терминал:
@@ -29,14 +31,16 @@
 
     ```bash
     #!/bin/bash
-    
-    ARCH=$(dpkg --print-architecture)   # определение архитектуры системы - amd64 
 
-    TAG=$(curl -fsSL https://api.github.com/repos/shadowsocks/v2ray-plugin/releases/latest \ # обращение к GitHub API для получения метаданных последнего релиза в виде JSON
-      | grep -oP '"tag_name":\s*"\K[^"]+') # поиск значения поля 'tag_name' (например, 'v1.3.2') - версия последнего релиза
+    # Определение архитектуры системы
+    ARCH=$(dpkg --print-architecture)
+
+    # Обращение к GitHub API для получения метаданных последнего релиза
+    TAG=$(curl -fsSL https://api.github.com/repos/shadowsocks/v2ray-plugin/releases/latest \
+        | grep -oP '"tag_name":\s*"\K[^"]+')
 
     curl -fsSL -o /tmp/v2ray-plugin.tar.gz \
-      "https://github.com/shadowsocks/v2ray-plugin/releases/download/${TAG}/v2ray-plugin-linux-${ARCH}-${TAG}.tar.gz"
+        "https://github.com/shadowsocks/v2ray-plugin/releases/download/${TAG}/v2ray-plugin-linux-${ARCH}-${TAG}.tar.gz"
 
     mkdir -p /tmp/v2ray-plugin
     tar -xzf /tmp/v2ray-plugin.tar.gz -C /tmp/v2ray-plugin
@@ -48,19 +52,7 @@
     ```
 
 7. [[Настройка v2ray-plugin]]
-8. Дополнительная оптимизация сети
-
-    ```bash
-    # Увеличиваем буферы для лучшей производительности
-    echo "net.core.rmem_max = 134217728" | sudo tee -a /etc/sysctl.conf
-    echo "net.core.wmem_max = 134217728" | sudo tee -a /etc/sysctl.conf
-    echo "net.ipv4.tcp_rmem = 4096 87380 134217728" | sudo tee -a /etc/sysctl.conf
-    echo "net.ipv4.tcp_wmem = 4096 65536 134217728" | sudo tee -a /etc/sysctl.conf
-    echo "net.ipv4.tcp_congestion_control = bbr" | sudo tee -a /etc/sysctl.conf
-    echo "net.core.default_qdisc = fq" | sudo tee -a /etc/sysctl.conf
-    sudo sysctl -p
-    ```
-
+8. [[Настройка брандмауэра]]
 9. Перезапуск сервиса
 
     ```bash
@@ -68,5 +60,3 @@
     sudo systemctl restart shadowsocks-libev
     sudo systemctl enable shadowsocks-libev # автозапуск
     ```
-
-10. [[Настройка брандмауэра]]

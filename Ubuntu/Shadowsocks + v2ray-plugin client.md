@@ -47,8 +47,8 @@ sudo nano /etc/shadowsocks-libev/local-config.json
     "method": "chacha20-ietf-poly1305",
     "fast_open": true,
     "mode": "tcp_and_udp",
-    "plugin": "/usr/local/bin/v2ray-plugin",
-    "plugin_opts": "websocket;host=bing.com;path=/search;mux=0"
+    "plugin": "v2ray-plugin",
+    "plugin_opts": "websocket;host=www.microsoft.com;path=/;mux=0"
 }
 ```
 
