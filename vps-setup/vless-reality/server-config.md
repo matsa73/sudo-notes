@@ -69,59 +69,7 @@
 nano /usr/local/etc/xray/config.json
 ```
 
-Полностью удалите содержимое файла и вставьте следующий шаблон. Вам нужно будет заменить три значения на те, что вы сгенерировали на предыдущем шаге:
-
-```json
-{
-  "log": {
-    "loglevel": "warning"
-  },
-  "inbounds": [
-    {
-      "port": 443,
-      "protocol": "vless",
-      "settings": {
-        "clients": [
-          {
-            "id": "ВАШ_UUID_ИЗ_ШАГА_2",
-            "flow": "xtls-rprx-vision"
-          }
-        ],
-        "decryption": "none"
-      },
-      "streamSettings": {
-        "network": "tcp",
-        "security": "reality",
-        "realitySettings": {
-          "show": false,
-          "dest": "www.microsoft.com:443",
-          "xver": 0,
-          "serverNames": [
-            "www.microsoft.com"
-          ],
-          "privateKey": "ВАШ_PRIVATE_KEY_ИЗ_ШАГА_2",
-          "shortIds": [
-            "ВАШ_SHORT_ID_ИЗ_ШАГА_2"
-          ]
-        }
-      },
-      "sniffing": {
-        "enabled": true,
-        "destOverride": [
-          "http",
-          "tls"
-        ]
-      }
-    }
-  ],
-  "outbounds": [
-    {
-      "protocol": "freedom",
-      "tag": "direct"
-    }
-  ]
-}
-```
+Полностью удалите содержимое файла и вставьте следующий шаблон. Вам нужно будет заменить три значения на те, что вы сгенерировали на предыдущем шаге: [config.json](config.json).
 
 Разбор параметров:
 
