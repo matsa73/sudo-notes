@@ -9,7 +9,13 @@
 
    ❗Если новая сессия не открывается — не отключать пароль, пока проблема не найдена. Иначе при ошибке в ключах или конфиге можно потерять доступ к серверу полностью.❗
 
-5. **Отключить парольный вход** — на сервере, в `/etc/ssh/sshd_config`:
+5. **Сделать резервную копию файла**:
+
+    ```bash
+    cp -a /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+    ```
+
+6. **Отключить парольный вход** — на сервере, в `/etc/ssh/sshd_config`:
 
     ```text
     PasswordAuthentication no
@@ -18,7 +24,32 @@
     PermitRootLogin prohibit-password
     ```
 
-6. **Перезапустить и проверить службу**:
+7. **Проверить синтаксис файла `sshd_config`** - `sudo sshd -t` (пустой вывод означает, что синтаксис в порядке);
+
+8. Проверить, что вход по паролю отключён:
+
+    ```bash
+    sudo sshd -T | grep -i passwordauthentication
+    sudo sshd -T -C user=root | grep -i passwordauthentication
+    ```
+
+    Если после проделанных процедур результат `passwordauthentication yes`, то это явное доказательство того, что какой-то drop-in файл от cloud-init или хостинга переопределяет основную конфигурацию.
+
+    Команда, позволяющая увидеть все файлы, содержащие `passwordauthentication yes`:
+
+    ```bash
+    sudo grep -rn 'PasswordAuthentication' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/
+
+    # /etc/ssh/sshd_config.d/50-cloud-init.conf:1:PasswordAuthentication yes
+    ```
+
+    Лучше не трогать файл, который создал cloud-init, а просто создать новый drop-in файл с номером меньше 50, чтобы он загружался первым (SSH использует принцип «первое совпадение имеет приоритет»):
+
+    ```bash
+    sudo nano /etc/ssh/sshd_config.d/01-disable-password.conf
+    ```
+
+9. **Перезапустить и проверить службу**:
 
     ```bash
     # На Ubuntu/Debian служба называется "ssh", а не "sshd"
@@ -26,7 +57,7 @@
     systemctl status ssh
     ```
 
-7. **Ещё раз проверить в новом окне терминала**, не закрывая старую сессию — и только после успешной проверки закрывать старые сессии.
+10. **Ещё раз проверить в новом окне терминала**, не закрывая старую сессию — и только после успешной проверки закрывать старые сессии.
 
 ## Android (`Termux`)
 
