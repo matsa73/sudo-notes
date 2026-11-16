@@ -2,11 +2,11 @@
 
 ## Шаг 1: Настройка VPS
 
-1. Подключение к VPS-серверу через терминал по ssh [[Подключение к VPS по SSH-ключу]]
+1. Подключение к VPS-серверу [ssh-auth-vps.md](/ssh/ssh-auth-vps.md)
 2. Обновление системы:
 
     ```bash
-    sudo apt update && sudo apt upgrade -y
+    sudo apt update -y
     ```
 
 3. Установка необходимых утилит (`curl` может быть уже установлен)
@@ -88,7 +88,7 @@ nano /usr/local/etc/xray/config.json
     xray run -test -c /usr/local/etc/xray/config.json
     ```
 
-    Если команда выполнится без ошибок, вы увидите сообщение `Configuration OK`. Если есть ошибки, они будут указаны с номером строки, что облегчит их поиск.
+    Если команда выполнится без ошибок, то появится сообщение `Configuration OK`. Если есть ошибки, они будут указаны с номером строки, что облегчит их поиск.
 
 2. Запуск и включение автозагрузки:
 
@@ -104,4 +104,4 @@ nano /usr/local/etc/xray/config.json
     systemctl status xray
     ```
 
-    Убедитесь, что служба находится в состоянии active (running).
+    Служба должна находится в состоянии active (running).
